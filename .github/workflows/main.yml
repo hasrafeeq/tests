@@ -26,12 +26,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Python script
-        run: python app.py
+        run: python fsd_scrape.py
 
       - name: Start FastAPI server
-        run: |
-          uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-        background: true
+        run: uvicorn app:app --host 0.0.0.0 --port 8000 --reload &
 
       - name: Wait for FastAPI server to start
         run: |
