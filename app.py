@@ -135,4 +135,4 @@ async def get_scraped_data() -> List[dict]:
 if __name__ == "__main__":
     scrape_and_save_data()
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
