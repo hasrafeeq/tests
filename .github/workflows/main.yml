@@ -1,0 +1,66 @@
+name: Scrape FSD Data
+
+on:
+  push:
+    branches:
+      - main  # only one branch main
+  schedule:
+    - cron: '0 0 * * *'  # Run every day at midnight
+
+
+jobs:
+  scrape_fsd:
+    name: Scrape FSD Website
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Python script
+        run: python app.py  
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build Docker image
+        run: docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/your-image-name:latest
+
+      - name: Push Docker image to Azure Container Registry
+        run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/your-image-name:latest
+
+      - name: Update Azure Container App
+        uses: Azure/aci-deploy@v1
+        with:
+          resource-group: your-resource-group
+          dns-name-label: your-dns-name-label
+          image-name: ${{ secrets.ACR_LOGIN_SERVER }}/your-image-name:latest
+          registry-login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          registry-username: ${{ secrets.ACR_USERNAME }}
+          registry-password: ${{ secrets.ACR_PASSWORD }}
+
+
+# Make sure to replace placeholders like your-image-name, 
+#your-resource-group, and your-dns-name-label with your actual values.
+
+#Also, ensure that you have stored your 
+#Azure Container Registry login credentials as GitHub secrets (ACR_LOGIN_SERVER, ACR_USERNAME, ACR_PASSWORD)
+# and set up appropriate permissions for the GitHub Actions workflow to access them.
